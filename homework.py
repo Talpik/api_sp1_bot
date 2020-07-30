@@ -20,17 +20,17 @@ def parse_homework_status(homework):
             verdict = 'К сожалению в работе нашлись ошибки.'
         elif homework['status'] == 'approved':
             verdict = (
-                f"Ревьюеру всё понравилось, можно приступать "
-                f"к следующему уроку."
+                f'Ревьюеру всё понравилось, можно приступать '
+                f'к следующему уроку.'
             )
         else:
             verdict = (
-                f"Статусы API неожиданно изменились, проверьте "
-                f"документацию API"
+                f'Статусы API неожиданно изменились, '
+                f'проверьте документацию API '
             )
     except KeyError as e:
         logging.error(f'Произошла ошибка {e}')
-    return f"У вас проверили работу "{homework_name}"!\n\n{verdict}"
+    return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
 def get_homework_statuses(current_timestamp):
@@ -48,22 +48,21 @@ def get_homework_statuses(current_timestamp):
         return str(e)
 
 
+
 def send_message(message):
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     return bot.send_message(chat_id=CHAT_ID, text=message)
 
 
 def main():
-    current_timestamp = int(time.time())  # 29 июля 2020 = 1596058073
+    current_timestamp = int(time.time())
 
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
             if new_homework.get('homeworks'):
-                send_message(
-                    parse_homework_status(new_homework.get('homeworks')[0])
-                )
-            current_timestamp = new_homework.get('current_date')  
+                send_message(parse_homework_status(new_homework.get('homeworks')[0]))
+            current_timestamp = new_homework.get('current_date')
             time.sleep(300)
 
         except Exception as e:
