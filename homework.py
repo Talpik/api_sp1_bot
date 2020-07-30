@@ -1,4 +1,5 @@
 import os
+import logging
 import requests
 import telegram
 import time
@@ -7,33 +8,49 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-PRACTICUM_TOKEN = os.getenv("PRACTICUM_TOKEN")
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+PRACTICUM_TOKEN = os.getenv("PRACTICUM_TOKEN") # Определение констант вне кода
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN') # Константы капсами в .env и в коде
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+API_URL = 'https://praktikum.yandex.ru/api/user_api/{method}/' # Замечания из предыдущего проекта
 
 
 def parse_homework_status(homework):
-    homework_name = ...
-    if ...
-        verdict = 'К сожалению в работе нашлись ошибки.'
-    else:
-        verdict = 'Ревьюеру всё понравилось, можно приступать к следующему уроку.'
+    homework_name = homework['homework_name']
+    try:
+        if homework['status']  == 'rejected':
+            verdict = 'К сожалению в работе нашлись ошибки.'
+        elif homework['status'] == 'approved':
+            verdict = 'Ревьюеру всё понравилось, можно приступать к следующему уроку.'
+        else:
+            verdict = 'Статусы API неожиданно изменились, проверьте документацию API '
+    except KeyError as e:
+        logging.error(f'Произошла ошибка {e}')
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
 def get_homework_statuses(current_timestamp):
-    ...
-    homework_statuses = ...
-    return homework_statuses.json()
+    headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+    params = {'from_date': current_timestamp or None}
+    try:
+        homework_statuses = requests.get(
+            API_URL.format(method='homework_statuses'),
+            headers=headers,
+            params=params
+        )
+        return homework_statuses.json()
+    except (requests.exceptions.RequestException) as e:
+        logging.error(f'Произошла ошибка {e}')
+        return str(e)
+
 
 
 def send_message(message):
-    ...
-    return bot.send_message(...)
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    return bot.send_message(chat_id=CHAT_ID, text=message)
 
 
 def main():
-    current_timestamp = int(time.time())  # начальное значение timestamp
+    current_timestamp = int(time.time())  # начальное значение timestamp 29 июля 2020 = 1596058073
 
     while True:
         try:
