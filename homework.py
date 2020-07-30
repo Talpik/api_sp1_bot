@@ -1,9 +1,8 @@
-import os
-import logging
-import requests
+import os, logging, requests, time
+
 import telegram
-import time
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -41,7 +40,6 @@ def get_homework_statuses(current_timestamp):
     except (requests.exceptions.RequestException) as e:
         logging.error(f'Произошла ошибка {e}')
         return str(e)
-
 
 
 def send_message(message):
