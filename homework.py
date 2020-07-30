@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-PRACTICUM_TOKEN = os.getenv("PRACTICUM_TOKEN") # Определение констант вне кода
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN') # Константы капсами в .env и в коде
+PRACTICUM_TOKEN = os.getenv("PRACTICUM_TOKEN")
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-API_URL = 'https://praktikum.yandex.ru/api/user_api/{method}/' # Замечания из предыдущего проекта
+API_URL = 'https://praktikum.yandex.ru/api/user_api/{method}/'
 
 
 def parse_homework_status(homework):
@@ -19,12 +19,18 @@ def parse_homework_status(homework):
         if homework['status']  == 'rejected':
             verdict = 'К сожалению в работе нашлись ошибки.'
         elif homework['status'] == 'approved':
-            verdict = 'Ревьюеру всё понравилось, можно приступать к следующему уроку.'
+            verdict = (
+                f"Ревьюеру всё понравилось, можно приступать "
+                f"к следующему уроку."
+            )
         else:
-            verdict = 'Статусы API неожиданно изменились, проверьте документацию API '
+            verdict = (
+                f"Статусы API неожиданно изменились, проверьте "
+                f"документацию API"
+            )
     except KeyError as e:
         logging.error(f'Произошла ошибка {e}')
-    return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+    return f"У вас проверили работу "{homework_name}"!\n\n{verdict}"
 
 
 def get_homework_statuses(current_timestamp):
@@ -48,15 +54,17 @@ def send_message(message):
 
 
 def main():
-    current_timestamp = int(time.time())  # начальное значение timestamp 29 июля 2020 = 1596058073
+    current_timestamp = int(time.time())  # 29 июля 2020 = 1596058073
 
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
             if new_homework.get('homeworks'):
-                send_message(parse_homework_status(new_homework.get('homeworks')[0]))
-            current_timestamp = new_homework.get('current_date')  # обновить timestamp
-            time.sleep(300)  # опрашивать раз в пять минут
+                send_message(
+                    parse_homework_status(new_homework.get('homeworks')[0])
+                )
+            current_timestamp = new_homework.get('current_date')  
+            time.sleep(300)
 
         except Exception as e:
             print(f'Бот упал с ошибкой: {e}')
