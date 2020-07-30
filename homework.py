@@ -34,8 +34,10 @@ def parse_homework_status(homework):
 
 
 def get_homework_statuses(current_timestamp):
+    if current_timestamp is None:
+        current_timestamp = int(time.time())
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-    params = {'from_date': current_timestamp or None}
+    params = {'from_date': current_timestamp}
     try:
         homework_statuses = requests.get(
             API_URL.format(method='homework_statuses'),
