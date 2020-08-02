@@ -11,14 +11,19 @@ PRACTICUM_TOKEN = os.getenv("PRACTICUM_TOKEN")
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 API_URL = 'https://praktikum.yandex.ru/api/user_api/{method}/'
+bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 
 def parse_homework_status(homework):
-    homework_name = homework['homework_name']
-    try:
-        if homework['status']  == 'rejected':
+    if homework.get('homework_name') is None or homework.get('status') is None \
+        or homework['status'] not in ['rejected', 'approved']:
+        return f'Неверный ответ сервера'
+    else:
+        homework_name = homework.get('homework_name')
+    
+        if homework.get('status')  == 'rejected':
             verdict = 'К сожалению в работе нашлись ошибки.'
-        elif homework['status'] == 'approved':
+        elif homework.get('status') == 'approved':
             verdict = (
                 f'Ревьюеру всё понравилось, можно приступать '
                 f'к следующему уроку.'
@@ -28,8 +33,6 @@ def parse_homework_status(homework):
                 f'Статусы API неожиданно изменились, '
                 f'проверьте документацию API '
             )
-    except KeyError as e:
-        logging.error(f'Произошла ошибка {e}')
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
@@ -47,12 +50,11 @@ def get_homework_statuses(current_timestamp):
         return homework_statuses.json()
     except (requests.exceptions.RequestException) as e:
         logging.error(f'Произошла ошибка {e}')
-        return str(e)
+        return {}
 
 
 
 def send_message(message):
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     return bot.send_message(chat_id=CHAT_ID, text=message)
 
 
@@ -63,7 +65,9 @@ def main():
         try:
             new_homework = get_homework_statuses(current_timestamp)
             if new_homework.get('homeworks'):
-                send_message(parse_homework_status(new_homework.get('homeworks')[0]))
+                send_message(
+                    parse_homework_status(new_homework.get('homeworks')[0])
+                )
             current_timestamp = new_homework.get('current_date')
             time.sleep(300)
 
