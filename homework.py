@@ -15,24 +15,26 @@ bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 
 def parse_homework_status(homework):
-    if homework.get('homework_name') is None or homework.get('status') is None \
-        or homework['status'] not in ['rejected', 'approved']:
-        return f'Неверный ответ сервера'
-    else:
-        homework_name = homework.get('homework_name')
+
+    homework_name = homework.get('homework_name')
+    homework_status = homework.get('status')
+    is_keys_invalid = homework_name is None or homework_status is None
+    is_status_invalid = homework_status not in ['rejected', 'approved']
     
-        if homework.get('status')  == 'rejected':
-            verdict = 'К сожалению в работе нашлись ошибки.'
-        elif homework.get('status') == 'approved':
-            verdict = (
-                f'Ревьюеру всё понравилось, можно приступать '
-                f'к следующему уроку.'
-            )
-        else:
-            verdict = (
-                f'Статусы API неожиданно изменились, '
-                f'проверьте документацию API '
-            )
+    if is_keys_invalid or is_status_invalid:
+        error_message = 'Неверный ответ сервера'
+        logging.error(error_message)
+        return error_message
+
+    homework_name = homework.get('homework_name')
+
+    if homework.get('status')  == 'rejected':
+        verdict = 'К сожалению в работе нашлись ошибки.'
+    elif homework.get('status') == 'approved':
+        verdict = (
+            f'Ревьюеру всё понравилось, можно приступать '
+            f'к следующему уроку.'
+        )
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
